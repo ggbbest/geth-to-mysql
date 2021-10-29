@@ -5,6 +5,8 @@ You need the genesis block with id 0 in your blocks table
 If you want to restart the import, just delete all blocks from the db and leave the genesis block
   
 ```
+nvm install v14.18.1
+
 node source.js
 ```
 
