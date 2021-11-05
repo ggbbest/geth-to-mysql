@@ -6,8 +6,12 @@ If you want to restart the import, just delete all blocks from the db and leave 
   
 ```
 nvm install v14.18.1
+nvm install v16.13.0
+npm start
 
-node source.js
+node block.js     --> block save to db
+node address.js   --> address save to db
+node create_address.js   --> address save to db
 ```
 
 When synced, it listens for new blocks and add them to the database.  

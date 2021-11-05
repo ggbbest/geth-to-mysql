@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ggbbest/geth-to-mysql",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "mysql": "^2.18.1",
     "web3": "^1.6.0"
   }

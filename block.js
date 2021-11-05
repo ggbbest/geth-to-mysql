@@ -1,4 +1,4 @@
-console.log("##### start #####");
+console.log("##### block save start #####");
 
 var mysql = require('mysql');
 // const Web3 = require("web3");
@@ -30,12 +30,16 @@ var latestSyncedBlock = 0;
 var curBlock = 0;
 var txcount = 0;
 //var txsql=[];
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+const dotenv = require('dotenv');
+dotenv.config();
 
 var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "expc4ei"
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_DATABASE
 });
 
 
@@ -57,8 +61,8 @@ web3.eth.getBlockNumber(function(error, result){
 
 web3.eth.getBlockNumber(function(err, rtn) {
   // var latest_block_number = 174648;
-  var latest_block_number = 175247;
-  for(var i=175001; i <= latest_block_number; i++){
+  var latest_block_number = 223000;
+  for(var i=220001; i <= latest_block_number; i++){
   // for(var i=0; i <= latest_block_number; i++){
       // setTimeout( function() { console.log(" Waiting for blocks...."+i); }, 100)
       // sleep(100, function() { });
