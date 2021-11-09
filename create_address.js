@@ -25,6 +25,7 @@ var con = mysql.createConnection({
 for(let i=0;i<200;i++){
     const wallet = web3.eth.accounts.create(process.env.C4EI_ADDR_PWD);
     console.log( "insert into address (address, privatekey) values ('"+ wallet.address +"','"+ wallet.privateKey+"');");
+    web3.personal.importRawKey('"+wallet.privateKey+"', '"+process.env.C4EI_ADDR_PWD+"');  // 2021-11-09 add
 }
 ///////////////////////////////////////////////
 
