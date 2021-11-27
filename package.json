@@ -19,6 +19,8 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "mysql": "^2.18.1",
+    "node-schedule": "^2.0.0",
+    "sync-mysql": "^3.0.1",
     "web3": "^1.6.0"
   }
 }

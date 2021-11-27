@@ -1,39 +1,37 @@
+// //npm install node-schedule
+// //node block.js
+// const schedule = require('node-schedule');
+// const j = schedule.scheduleJob('60 * * * *', function(){
+//   console.log('매 60초에 실행');
+// });
+
+// // *     *    *     *    *     *
+// // ┬    ┬    ┬    ┬    ┬    ┬
+// // │    │    │    │    │    │
+// // │    │    │    │    │    └ day of week (0 - 7) (0 or 7 is Sun)
+// // │    │    │    │    └───── month (1 - 12)
+// // │    │    │    └────────── day of month (1 - 31)
+// // │    │    └─────────────── hour (0 - 23)
+// // │    └──────────────────── minute (0 - 59)
+// // └───────────────────────── second (0 - 59, OPTIONAL)
+// // 등록한 스케줄을 취소하기 위해서는 cancel() 메소드를 사용할 수 있다.
+// // j.cancel();
 console.log("##### block save start #####");
 
 var mysql = require('mysql');
-// const Web3 = require("web3");
-// // const WSS = "wss://192.168.0.185:21004";
-// // const WSS = "wss://rpc.c4ei.net";
-
-// const options = {
-//   // Enable auto reconnection
-//   reconnect: {
-//       auto: true,
-//       delay: 5000, // ms
-//       maxAttempts: 5,
-//       onTimeout: false
-//   }
-// };
-// //https://github.com/ChainSafe/web3.js/releases/tag/v1.2.7
-// const web3 = new Web3.providers.WebsocketProvider('ws://192.168.0.185:21004', options) 
-// var web3 = new Web3(provider);
-// var Web3 = require('web3');
-// var web3 = new Web3();
-// web3 = new Web3(new Web3.providers.HttpProvider("http://192.168.0.185:21004"));
-// web3 = new Web3(new Web3.providers.HttpProvider("https://rpc.c4ei.net"));
-
-///////////////////////////////////////////////
 var Web3 = require("web3");
-var web3 = new Web3(new Web3.providers.HttpProvider("http://192.168.0.185:21004"));
+var web3 = new Web3(new Web3.providers.HttpProvider("http://192.168.1.185:21004"));
 
 var latestSyncedBlock = 0;
-var curBlock = 0;
-var txcount = 0;
-//var txsql=[];
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const dotenv = require('dotenv');
 dotenv.config();
+
+// npm i sync-mysql
+let db_config = require(__dirname + '/database.js');// 2020-09-13
+let sync_mysql = require('sync-mysql'); //2020-01-28
+let sync_connection = new sync_mysql(db_config.constr());
 
 var con = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -41,185 +39,91 @@ var con = mysql.createConnection({
   password: process.env.DB_PASS,
   database: process.env.DB_DATABASE
 });
+var txcount = 0;
+// #################
+var latest_block_number = 215114;
+var start_Db_block_No = 215114;
+main();
 
+setInterval(() => {
+  main();
+}, 60000); // 1 minute
 
-function sleep(time, callback) {
-  var stop = new Date().getTime();
-  while(new Date().getTime() < stop + time) {
-      ;
-  }
-  callback();
-}
+// #################
+
 ///////////////////////////////////////////////
-web3.eth.getBlockNumber(function(error, result){
-  if (!error){
-    set_curBlock(result);
-  }else{
-    console.log("error:"+error);
-  }
-});
-
-web3.eth.getBlockNumber(function(err, rtn) {
-  // var latest_block_number = 174648;
-  var latest_block_number = 223000;
-  for(var i=220001; i <= latest_block_number; i++){
-  // for(var i=0; i <= latest_block_number; i++){
-      // setTimeout( function() { console.log(" Waiting for blocks...."+i); }, 100)
-      // sleep(100, function() { });
-      web3.eth.getBlock(i, true, function(err, block) {
-          //# TODO: DB에 insert하는 코드
-          // console.log(block);
-          //setBlock2Db(i);
-          var sql = "INSERT INTO block (id,blockhash, miner, timestamp, size, transactions, number, uncle_hash, data, gasused) VALUES ('" + block['number'] + "','" + block.hash + "', '" + block.miner +
-            "', '" + block.timestamp + "', '" + block.size + "', '" + block.transactions + "', '" + block['number'] + "', '" + block.sha3Uncles + "', '" + block.extraData + "', '" + block.gasUsed +
-            "') ON DUPLICATE KEY UPDATE id=id";
-          console.log(sql);
-          con.query(sql, function(err, result) {
-            if (err) throw err;
-            console.log("block['number'] " + block['number'] + " INSERTED!");
-          });
-          var tr_length=0;
-          try{
-            block.transactions.length = tr_length;
-          }
-          catch(error){
-            console.log(error);
-          }
-          if(tr_length>0){
-            for (var i = 0; i < block.transactions.length; i++) {
-              var tx = block.transactions[i]
-              var txsql = "INSERT INTO transaction (txid, value, gas, gasprice, nonce, txdata, block_id,sender,receiver,timestamp) VALUES ('" + tx.hash + "', '" + tx['value'] + "', '" + tx.gas + "', '" +
-                tx.gasPrice + "', '" + tx.nonce + "', '" + tx['input'] + "', '" + blockToSync + "','" + tx["from"] + "','" + tx["to"] + "','" + timestamp + "')";
-              addTx(txsql, tx.hash);
-              var tosql = "INSERT INTO address (address,inputcount,outputcount) VALUES ('" + tx["to"] + "',0,0) ON DUPLICATE KEY UPDATE id=id";
-              var fromsql = "INSERT INTO address (address,outputcount,inputcount) VALUES ('" + tx["from"] + "',0,0) ON DUPLICATE KEY UPDATE id=id";
-              addAddress(tosql, fromsql, tx["to"], tx["from"]);
-            }
-          }
-      });
-  }
-  console.log(" ###  INSERTED! END ### ");
-});
-
-// // for(var i=1; i <= 10; i++){
-// //   setBlock2Db(i)
-// // }
-// function setBlock2Db(i) {
-//   // var blockToSync = block;
-//   // block = web3.eth.getBlock(blockToSync, true);
-//   web3.eth.getBlock(i, false, function(err, block) {
-//       //# TODO: DB에 insert하는 코드
-//       // console.log(block);
-//       var sql = "INSERT INTO block (id,blockhash, miner, timestamp, size, transactions, number, uncle_hash, data, gasused) VALUES ('" + block['number'] + "','" + block.hash + "', '" + block.miner +
-//       "', '" + block.timestamp + "', '" + block.size + "', '" + block.transactions + "', '" + block['number'] + "', '" + block.sha3Uncles + "', '" + block.extraData + "', '" + block.gasUsed +
-//       "') ON DUPLICATE KEY UPDATE id=id";
-//     console.log(sql);
-//     con.query(sql, function(err, result) {
-//       if (err) throw err;
-//       console.log("block['number'] " + block['number'] + " INSERTED!");
-//     });
-//   });
-// }
-
-//web3.eth.getAccounts().then(e => console.log(e));
-// web3.eth.getAccounts().then( function(e){
-//         addr1=e[0];
-//         addr2=e[1];
-//         console.log(addr1);
-//         console.log(addr2);
-// });
 function set_curBlock(cblock){
   latestSyncedBlock = cblock;
-  console.log("block number => "+cblock);
+  // getCurTimestamp();  //Date.now()
+  console.log(getCurTimestamp() +" block number => "+cblock);
 }
 
-// con.connect(function(err) {
-//   if (err) throw err;
-//   con.query("SELECT * FROM block", function(err, result, fields) {
-//     if (err) throw err;
-//     console.log("DB LAST SYNCED BLOCK " + result[result.length - 1].id);
-//     latestSyncedBlock = parseInt(result[result.length - 1].id);
-//     if (latestSyncedBlock < curBlock) {
-//       //syncBlock(latestSyncedBlock);
-//       console.log(" need sync : ")
-//     } else {
-//       //synced();
-//       console.log(" not need synced : ")
-//       // web3.eth.getBlock(2);
-//     }
-//   });
-//   console.log("Connected to mysql!");
-// });
-////////////////////////////////////////////////
-/*
-con.connect(function(err) {
-  if (err) throw err;
-  con.query("SELECT * FROM block", function(err, result, fields) {
-    if (err) throw err;
-    console.log("LAST SYNCED BLOCK " + result[result.length - 1].id);
-    console.log(" 64 curBlock : " + curBlock)
-    latestSyncedBlock = parseInt(result[result.length - 1].id);
-    if (latestSyncedBlock < web3.eth.blockNumber) {
-    //if (latestSyncedBlock < curBlock) {
-      syncBlock(latestSyncedBlock);
-    } else {
-      synced();
+function main(){
+  web3.eth.getBlockNumber(function(error, result){
+    if (!error){
+      set_curBlock(result);
+      latest_block_number = result;
+    }else{
+      console.log("error:"+error);
     }
   });
-  console.log("Connected to mysql!");
-});
+  
+  var sql = "SELECT MAX(id) mxidx FROM block " ;
+  let result = sync_connection.query(sql);
+  start_Db_block_No = result[0].mxidx;
 
-function synced() {
-  console.log("SYNCED");
-  setInterval(function() {
-    console.log("Waiting for blocks....");
-  }, 20000)
-  // var filter = web3.eth.filter('latest');
-  //-->
-  let filter = web3.eth.subscribe('newBlockHeaders')
-  filter.subscribe((error, result) => {
-    if (error) {
-      console.log("Error subscribing to event", error)
-      process.exit()
+  console.log(latest_block_number + " : latest_block_number / "+start_Db_block_No + " : start_Db_block_No ");
+
+  web3.eth.getBlockNumber(function(err, rtn) {
+    // var latest_block_number = 214269;
+    for(var i=start_Db_block_No; i <= latest_block_number; i++){
+        web3.eth.getBlock(i, true, function(err, block) {
+            var sql = "INSERT INTO block (id,blockhash, miner, timestamp, size, transactions, number, uncle_hash, data, gasused) VALUES ('" + block['number'] + "','" + block.hash + "', '" + block.miner + "', '" + block.timestamp + "', '" + block.size + "', '" + block.transactions + "', '" + block['number'] + "', '" + block.sha3Uncles + "', '" + block.extraData + "', '" + block.gasUsed + "') ON DUPLICATE KEY UPDATE id=id";
+            // if(latest_block_number-1 ==i ){console.log(sql);}
+            con.query(sql, function(err, result) {
+              if (err) throw err;
+  //console.log("block['number'] " + block['number'] + " INSERTED!");
+            });
+            var tr_length=0;
+            try{ tr_length = block.transactions.length; }
+            catch(error){ console.log(error); }
+            if(tr_length>0){
+  console.log("###################### " + block['number'] + " block.transactions #################################");
+              for (var i = 0; i < block.transactions.length; i++) {
+                var tx = block.transactions[i]
+                var txsql = "INSERT INTO transaction (txid, value, gas, gasprice, nonce, txdata, block_id,sender,receiver,timestamp) VALUES ('" + tx.hash + "', '" + tx['value'] + "', '" + tx.gas + "', '" + tx.gasPrice + "', '" + tx.nonce + "', '" + tx['input'] + "', '" + block['number'] + "','" + tx["from"] + "','" + tx["to"] + "','" + block.timestamp + "')";
+                addTx(txsql, tx.hash);
+                var tosql = "INSERT INTO address_tr (address,inputcount,outputcount) VALUES ('" + tx["to"] + "',0,0) ON DUPLICATE KEY UPDATE idx=idx";
+                var fromsql = "INSERT INTO address_tr (address,outputcount,inputcount) VALUES ('" + tx["from"] + "',0,0) ON DUPLICATE KEY UPDATE idx=idx";
+                addAddress(tosql, fromsql, tx["to"], tx["from"]);
+              }
+            }
+        });
+        // console.log("###  for END ### ");
     }
-  }).on('data', blockHeader => {
-    if (!blockHeader || !blockHeader.number)
-      return
-    console.log("Block "+blockHeader.number)
-    curBlock = blockHeader.number;  //
-    //var block = web3.eth.getBlock(result);
-    // syncBlock(block['number']);
-    syncBlock(blockHeader.number);
-  })
-
-  // filter.watch(function(error, result) {
-  //   console.log(result)
-  //   console.log("RESULT")
-  //   var block = web3.eth.getBlock(result);
-  //   syncBlock(block['number']);
-  // });
+    console.log(" ###  INSERTED! END ### ");
+  });
+  
 }
-*/
+
 
 function syncBlock(block) {
   var blockToSync = block;
   block = web3.eth.getBlock(blockToSync, true);
-  var sql = "INSERT INTO block (id,blockhash, miner, timestamp, size, transactions, number, uncle_hash, data, gasused) VALUES ('" + block['number'] + "','" + block.hash + "', '" + block.miner +
-    "', '" + block.timestamp + "', '" + block.size + "', '" + block.transactions + "', '" + block['number'] + "', '" + block.sha3Uncles + "', '" + block.extraData + "', '" + block.gasUsed +
-    "') ON DUPLICATE KEY UPDATE id=id";
+  var sql = "INSERT INTO block (id,blockhash, miner, timestamp, size, transactions, number, uncle_hash, data, gasused) VALUES ('" + block['number'] + "','" + block.hash + "', '" + block.miner + "', '" + block.timestamp + "', '" + block.size + "', '" + block.transactions + "', '" + block['number'] + "', '" + block.sha3Uncles + "', '" + block.extraData + "', '" + block.gasUsed + "') ON DUPLICATE KEY UPDATE id=id";
   console.log("SYNCING BLOCK NUMBER " + blockToSync);
   var timestamp = block.timestamp;
   if (block.transactions.length != 0) {
     con.query(sql, function(err, result) {
       if (err) throw err;
-      console.log("BLOCK " + block['number'] + " INSERTED!");
+console.log("BLOCK " + block['number'] + " INSERTED!");
       for (var i = 0; i < block.transactions.length; i++) {
         var tx = block.transactions[i]
-        var txsql = "INSERT INTO transaction (txid, value, gas, gasprice, nonce, txdata, block_id,sender,receiver,timestamp) VALUES ('" + tx.hash + "', '" + tx['value'] + "', '" + tx.gas + "', '" +
-          tx.gasPrice + "', '" + tx.nonce + "', '" + tx['input'] + "', '" + blockToSync + "','" + tx["from"] + "','" + tx["to"] + "','" + timestamp + "')";
+        var txsql = "INSERT INTO transaction (txid, value, gas, gasprice, nonce, txdata, block_id,sender,receiver,timestamp) VALUES ('" + tx.hash + "', '" + tx['value'] + "', '" + tx.gas + "', '" +tx.gasPrice + "', '" + tx.nonce + "', '"+ tx['input'] + "', '" + block['number'] + "','" + tx["from"] + "','" + tx["to"] + "','" + block.timestamp + "')";
+          // + tx['input'] + "', '" + blockToSync + "','" + tx["from"] + "','" + tx["to"] + "','" + block.timestamp + "')";
         addTx(txsql, tx.hash);
-        var tosql = "INSERT INTO address (address,inputcount,outputcount) VALUES ('" + tx["to"] + "',0,0) ON DUPLICATE KEY UPDATE id=id";
-        var fromsql = "INSERT INTO address (address,outputcount,inputcount) VALUES ('" + tx["from"] + "',0,0) ON DUPLICATE KEY UPDATE id=id";
+        var tosql = "INSERT INTO address_tr (address,inputcount,outputcount) VALUES ('" + tx["to"] + "',0,0) ON DUPLICATE KEY UPDATE idx=idx";
+        var fromsql = "INSERT INTO address_tr (address,outputcount,inputcount) VALUES ('" + tx["from"] + "',0,0) ON DUPLICATE KEY UPDATE idx=idx";
         addAddress(tosql, fromsql, tx["to"], tx["from"]);
       }
       latestSyncedBlock++;
@@ -259,12 +163,29 @@ function addAddress(to, fr, toad, frad) {
     if (err) throw err;
     console.log("Address " + toad + " INSERTED!");
   });
-  con.query("UPDATE address SET inputcount = inputcount + 1 WHERE address = '" + toad + "'", function(err, result) {
+  con.query("UPDATE address_tr SET inputcount = inputcount + 1 WHERE address = '" + toad + "'", function(err, result) {
     if (err) throw err;
     console.log(toad + " input count updated");
   });
-  con.query("UPDATE address SET outputcount = outputcount + 1 WHERE address = '" + frad + "'", function(err, result) {
+  con.query("UPDATE address_tr SET outputcount = outputcount + 1 WHERE address = '" + frad + "'", function(err, result) {
     if (err) throw err;
     console.log(frad + " output count updated");
   });
+}
+
+function getCurTimestamp() {
+  const d = new Date();
+
+  return new Date(
+    Date.UTC(
+      d.getFullYear(),
+      d.getMonth(),
+      d.getDate(),
+      d.getHours(),
+      d.getMinutes(),
+      d.getSeconds()
+    )
+  // `toIsoString` returns something like "2017-08-22T08:32:32.847Z"
+  // and we want the first part ("2017-08-22")
+  ).toISOString().replace('T','_').replace('Z','');
 }

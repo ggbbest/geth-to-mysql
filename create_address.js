@@ -3,7 +3,7 @@ console.log("#####  address save start #####");
 
 var mysql = require('mysql');
 var Web3 = require("web3");
-var web3 = new Web3(new Web3.providers.HttpProvider("http://192.168.0.185:21004"));
+var web3 = new Web3(new Web3.providers.HttpProvider("http://192.168.1.185:21004"));
 
 var latestSyncedBlock = 0;
 var curBlock = 0;
