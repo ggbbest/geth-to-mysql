@@ -16,6 +16,9 @@ node addressimp.js
 node balance.js
 cd /home/dev/www/geth-to-mysql
 node block.js
+
+cd /home/dev/www/geth-to-mysql
+node cr_address_klay
 ```
 
 When synced, it listens for new blocks and add them to the database.  

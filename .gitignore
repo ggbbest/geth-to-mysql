@@ -3,3 +3,5 @@ node_modules
 address.txt
 addressimport.txt
 database.js
+address_klay.txt
+address_klay_imp.txt
