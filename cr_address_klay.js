@@ -18,7 +18,7 @@ var con = mysql.createConnection({
 });
 
 const Caver = require('caver-js')
-const caver = new Caver('http://192.168.1.157:8217/')
+const caver = new Caver(process.env.CEIK_RPC)
 
 // console.log( "insert into address_klay (address, privatekey) values ('"+ wallet.address +"','"+ wallet.privateKey+"');");
 

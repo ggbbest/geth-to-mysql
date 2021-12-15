@@ -38,7 +38,7 @@ async function sendTokenBCK(){
 async function sendToken(){
     const TokenInstance = new web3.eth.Contract(bckExchangeAbi, bck_SCaddress)
     TokenInstance.methods.transfer(receiverAddress, sendBCK).send({from: senderAddress})
-    // .on('transactionHash', (hash) => { console.log("### transactionHash ###"); console.log(hash);})
+    .on('transactionHash', (hash) => { console.log("### transactionHash ###"); console.log(hash);})
     .once('receipt', (receipt) => {
       console.log("blockNumber " + receipt.blockNumber + " / contractAddress" + receipt.contractAddress + " / blockHash" + receipt.blockHash + " / transactionHash" + receipt.transactionHash);
     })
