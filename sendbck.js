@@ -16,11 +16,13 @@ const provider = "http://192.168.1.185:21004"
 const web3 = new Web3(new Web3.providers.HttpProvider(provider));
 
 ////////////////////////////////////////////////////////////////
-const receiverAddress = "0x014B0c7D9b22469fE13abf585b1E38676A4a136f"; // bank4C4ei
+// const receiverAddress = "0x014B0c7D9b22469fE13abf585b1E38676A4a136f"; // bank4C4ei
+// const receiverAddress = "0x0169Eb3f0383b5D1138CbAB1dAcCE11Afb2c779F"; // c4ei.net@gmail.com
+const receiverAddress = "0xAd70df6Bd78734721F42CD8cCACe42b25D83Aa65"; // metamast
 const senderAddress = "0x0178791B2e27287911FD06FD2Ba28c77C0Db4B1c"; // 윈스톰 법사 C4EI
 const bck_SCaddress = "0x1d187BbeCeF8d7b1731339c301ab8354d4F0A50b";
 const bckExchangeAbi = require("./erc20abi.json");
-const sendBCK = web3.utils.toHex(100000000000000000); // 0.1 BCK
+const sendBCK = web3.utils.toHex(1 * 1000000000000000000); // 1 BCK
 
 async function fn_unlockAccount_token(addr){
   let rtn_result = false;
