@@ -33,6 +33,8 @@ async function getBalanceC4eiCont(tokenName, walletAddress) {
     break;
     case "RNT": tokenAddress = "0x7E6af705dB981D0E391B4e063E39a6bbDF60e66f"; // RNT (RENTAL)
     break;
+    case "DEOR": tokenAddress = "0x6335E94a01D21DA57e2AA5EBAdf1935A934A70EC"; // DEOR
+    break;
     default : tokenAddress = "0x1d187BbeCeF8d7b1731339c301ab8354d4F0A50b"; // BCK (BlockChainKorea)
     break;
   }
@@ -40,7 +42,11 @@ async function getBalanceC4eiCont(tokenName, walletAddress) {
   const contract = new Web3Client.eth.Contract(minABI, tokenAddress);
 
   const result = await contract.methods.balanceOf(walletAddress).call(); // 
-  const format = Web3Client.utils.fromWei(result); // 10
+  let format = Web3Client.utils.fromWei(result); // 10
+  if (tokenName=="DEOR"){
+    format = format * 1000000000;  // 
+  }
   console.log(format);
 }
 getBalanceC4eiCont("BCK","0x0178791B2e27287911FD06FD2Ba28c77C0Db4B1c");
+getBalanceC4eiCont("DEOR","0x66eC272Cf68967Ff821dB6Fd5AB8AE2Ed35014E4");

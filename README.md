@@ -20,6 +20,9 @@ node block.js
 cd /home/dev/www/geth-to-mysql
 node cr_address_klay
 node balbck
+
+node address /home/dev/www/geth-to-mysql/address/address1001.txt
+
 ```
 docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'  c4ei2dbsrc_idx-database_1
 172.21.0.2
