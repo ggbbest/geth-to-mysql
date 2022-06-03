@@ -17,10 +17,13 @@
   },
   "homepage": "https://github.com/ggbbest/geth-to-mysql",
   "dependencies": {
+    "axios": "^0.27.2",
     "caver-js": "^1.6.5",
+    "cheerio": "^1.0.0-rc.11",
     "dotenv": "^10.0.0",
     "mysql": "^2.18.1",
     "node-schedule": "^2.0.0",
+    "puppeteer": "^14.2.1",
     "sync-mysql": "^3.0.1",
     "web3": "^1.6.0"
   }
