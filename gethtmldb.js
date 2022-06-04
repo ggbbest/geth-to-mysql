@@ -30,7 +30,7 @@ async function main(){
     await page.setViewport( { width: 1366, height: 768 } );
     await page.goto('https://sigbtc.pro/derivatives');
     // wait page
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(6000);
     // 페이지의 HTML을 가져온다.
     const content = await page.content();
 
@@ -91,7 +91,7 @@ async function main(){
     const lists16_2  = $("#mainMenu > div > div:nth-child(8) > div > div > div > a > span").text();
     // console.log(lists16_1 + " " + lists16_2 +":lists16 BogPear ");
 
-    var sql = "INSERT INTO showinfo (f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14_1,f14_2,f15_1,f15_2,f16_1,f16_2) VALUES ('" + lists1 + "','" + lists2 + "','" + lists3 + "','" + lists4 + "','" + lists5 + "','" + lists6 + "','" + lists7 + "','" + lists8 + "','" + lists9 + "','" + lists10 + "','" + lists11 + "','" + lists12 + "','" + lists13 + "','" + lists14_1 + "','" + lists14_2 + "','" + lists15_1 + "','" + lists15_2 + "','" + lists16_1 + "','" + lists16_2 + "') ON DUPLICATE KEY UPDATE idx=idx";
+    var sql = "INSERT INTO showinfo (f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14_1,f14_2,f15_1,f15_2,f16_1,f16_2) VALUES ('" + lists1 + "','" + lists2 + "','" + lists3 + "','" + lists4 + "','" + lists5 + "','" + lists6 + "','" + lists7 + "','" + lists8 + "','" + lists9 + "','" + lists10 + "','" + lists11 + "','" + lists12 + "','" + lists13 + "','" + lists14_1 + "','" + lists14_2 + "','" + lists15_1 + "','" + lists15_2 + "','" + lists16_1 + "','" + lists16_2 + "'); "; //ON DUPLICATE KEY UPDATE idx=idx
     console.log(sql);
     con.query(sql, function(err, result) {
       if (err) throw err;
@@ -137,5 +137,6 @@ function getCurTimestamp() {
   ).toISOString().replace('T','_').replace('Z','');
 }
 
+main();
 const interval = setInterval(() => { main(); console.log('====== 1MIN 마다 실행 ======'); }, 1000*60);
 // main();
