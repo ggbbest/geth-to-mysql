@@ -58,7 +58,7 @@ async function main(){
             send_msg = encodeURI(blockchain+"☆"+symbol+" "+from_owner_type+" 에서 "+to_owner_type+" 지갑으로 ☆ "+amount_usd+"$ 출금 확인 포착 출처 - https://web.c4ei.net");
             send_msg_save = true;
 
-            let url2 = 'https://api.telegram.org/'+process.env.TeleBot+'/sendMessage?chat_id=-1001638921944&text='+send_msg;
+            let url2 = 'https://api.telegram.org/'+process.env.TeleBot+'/sendMessage?chat_id='+process.env.TeleChatId+'&text='+send_msg;
             axios.get(url2).then((res) => {
               console.log("telegram : " + send_msg);
             }).catch(error => {
