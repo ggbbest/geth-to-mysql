@@ -4,6 +4,7 @@
 
 let Parser = require('rss-parser');
 let parser = new Parser();
+let axios = require('axios');
 ////////////////////////////////////////////////////////////////
 var mysql = require('mysql');
 const path = require('path');
@@ -44,12 +45,29 @@ async function main(){
     var dCnt = result2[0].dCnt;
     var sql3 = "DELETE FROM shownews WHERE idx < "+dCnt;
     var result3 = con.query(sql3);
-    console.log(sql3);
+    // console.log(sql3);
+
+    // krw 
+    let url = 'https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=FRX.KRWUSD';
+    axios.get(url)
+    .then((res) => {
+      // console.log(res);
+      let rcvData = res.data;
+      rcvData.forEach(item => {
+        let _krw  = item.basePrice;
+        if(_krw!=undefined){
+          var sql6 = "update show_krw set krw="+_krw+" where idx=1;";
+          var result6 = con.query(sql6);
+          console.log(sql6);
+        }
+      });
+    }).catch(error => {
+      console.log(error);
+    });
+
     console.log(getCurTimestamp() +" / runnung !!!");
     // ####################################
-
 }
-
 
 function getCurTimestamp() {
   const d = new Date();

@@ -23,7 +23,7 @@ let sync_connection = new sync_mysql(db_config.constr());
 async function main(){
   let send_msg ="";
   let send_msg_save = false;
-  let url = 'https://api.whale-alert.io/v1/transactions?api_key='+process.env.wHALEAPI_KEY+'&min_value=500000&limit=2&currency=usdt';
+  let url = 'https://api.whale-alert.io/v1/transactions?api_key='+process.env.wHALEAPI_KEY+'&min_value=500000&limit=2&currency=btc';
   axios.get(url)
   .then((res) => {
     // console.log(res.data.transactions);
