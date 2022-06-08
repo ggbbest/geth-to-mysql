@@ -19,11 +19,45 @@ var db_config = require(__dirname + '/database.js');// 2020-09-13
 var sync_mysql = require('sync-mysql'); //2020-01-28
 let sync_connection = new sync_mysql(db_config.constr());
 ////////////////////////////////////////////////////////////////
+let _krw = 1254.80;
+let result_KRW = sync_connection.query("SELECT krw,BTC,BTC_KRW,ETH,ETH_KRW FROM show_krw where idx=1 ");
+_krw      = result_KRW[0].krw;
+let _BTC      = result_KRW[0].BTC;
+let _BTC_KRW  = result_KRW[0].BTC_KRW;
+let _ETH      = result_KRW[0].ETH; 
+let _ETH_KRW  = result_KRW[0].ETH_KRW;
 
 async function main(){
+  //#####################
+  let BTC_PRICE=30523.4;
+  let ETH_PRICE=1807.0649;
+  let url1 = 'https://contract.mexc.com/api/v1/contract/index_price/BTC_USDT';
+  axios.get(url1)
+  .then((res) => {
+      if(res.data.success){ 
+          console.log(res.data.data.symbol +" : "+ res.data.data.indexPrice); 
+          BTC_PRICE = res.data.data.indexPrice;
+      }
+  }).catch(error => { console.log(error);});
+  
+  let url2 = 'https://contract.mexc.com/api/v1/contract/index_price/ETH_USDT';
+  axios.get(url2)
+  .then((res) => {
+      if(res.data.success){ 
+          console.log(res.data.data.symbol +" : "+ res.data.data.indexPrice); 
+          ETH_PRICE = res.data.data.indexPrice;
+      }
+  }).catch(error => { console.log(error);});
+  var sql_upd1 = "update show_krw set BTC="+BTC_PRICE+",BTC_KRW=krw *"+BTC_PRICE+",ETH="+ETH_PRICE+",ETH_KRW=krw *"+ETH_PRICE+" WHERE idx=1;";
+  var rsql_upd1 = con.query(sql_upd1);
+
+  //#####################
+
+  
   let send_msg ="";
   let send_msg_save = false;
-  let url = 'https://api.whale-alert.io/v1/transactions?api_key='+process.env.wHALEAPI_KEY+'&min_value=500000&limit=2&currency=btc';
+
+  let url = 'https://api.whale-alert.io/v1/transactions?api_key='+process.env.wHALEAPI_KEY+'&min_value=500000&limit=2&currency=usdt';
   axios.get(url)
   .then((res) => {
     // console.log(res.data.transactions);
@@ -55,7 +89,10 @@ async function main(){
             if (err) throw err;
           });
           if(!send_msg_save){
-            send_msg = encodeURI(blockchain+"☆"+symbol+" "+from_owner_type+" 에서 "+to_owner_type+" 지갑으로 ☆ "+amount_usd+"$ 출금 확인 포착 출처 - https://web.c4ei.net");
+            if(from_owner_type=="unknown"){from_owner_type="특정";}
+            if(to_owner_type=="unknown"){to_owner_type="특정";}
+            // send_msg = encodeURI(blockchain+"☆"+symbol+" "+from_owner_type+" 에서 "+to_owner_type+" 지갑으로 ☆ "+amount_usd+"$ 출금("+jsfn_numb2Krw(amount_usd)+"원) 확인 포착 출처 - https://web.c4ei.net");
+            send_msg = encodeURI("☆"+symbol+" "+"☆"+from_owner_type+"지갑 에서 "+to_owner_type+"지갑으로 ☆ "+(amount_usd).toLocaleString('ko-KR')+"$ 입출금("+jsfn_numb2Krw(amount_usd)+"원) 확인 포착 <br/>현재 비트코인 달러 가격 : $"+(_BTC).toLocaleString('en-US')+" 현재 비트코인 원화 가격 : "+(_BTC_KRW).toLocaleString('ko-KR')+" 원 <br/> ETH 달러 가격 : $"+(_ETH).toLocaleString('en-US')+" 현재 ETH 원화 가격 : "+(_ETH_KRW).toLocaleString('ko-KR')+" 원 ");
             send_msg_save = true;
 
             let url2 = 'https://api.telegram.org/'+process.env.TeleBot+'/sendMessage?chat_id='+process.env.TeleChatId+'&text='+send_msg;
@@ -85,6 +122,30 @@ async function main(){
 
   console.log(getCurTimestamp() +" / runnung !!!");
   // ####################################
+}
+
+function jsfn_numb2Krw(number) {
+  var inputNumber = number < 0 ? false : number;
+  inputNumber = inputNumber*_krw;  // krw
+  var unitWords = ["", "만", "억", "조", "경"];
+  var splitUnit = 10000;
+  var splitCount = unitWords.length;
+  var resultArray = [];
+  var resultString = "";
+
+  for (var i = 0; i < splitCount; i++) {
+    var unitResult =
+      (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
+    unitResult = Math.floor(unitResult);
+    if (unitResult > 0) {
+      resultArray[i] = unitResult;
+    }
+  }
+  for (var i = 0; i < resultArray.length; i++) {
+    if (!resultArray[i]) continue;
+    resultString = String(resultArray[i]) + unitWords[i] + resultString;
+  }
+  return resultString;
 }
 
 function getCurTimestamp() {
